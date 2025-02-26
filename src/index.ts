@@ -5,20 +5,35 @@ export type DraftFunction<S> = (draft: Draft<S>) => void;
 export type Updater<S> = (arg: S | DraftFunction<S>) => void;
 export type ImmerHook<S> = [S, Updater<S>];
 
-export function useImmer<S = any>(initialValue: S | (() => S)): ImmerHook<S>;
+export function useImmer<S = any>(initialValue: S | (() => S), behavior: {
+  freeze?: boolean;
+  deep?: boolean;
+}): ImmerHook<S>;
 
-export function useImmer(initialValue: any) {
+export function useImmer(
+  initialValue: any,
+  behavior: {
+    freeze?: boolean;
+    deep?: boolean;
+  } = {
+    freeze: true,
+    deep: true,
+  }
+) {
+  const { freeze: behaviorFreeze, deep } = behavior;
+  const doNothing = (...args: any[]) => args;
+  const resultSolver = behaviorFreeze ? freeze : doNothing;
   const [val, updateValue] = useState(() =>
-    freeze(
+    resultSolver(
       typeof initialValue === "function" ? initialValue() : initialValue,
-      true
+      deep
     )
   );
   return [
     val,
     useCallback((updater) => {
       if (typeof updater === "function") updateValue(produce(updater));
-      else updateValue(freeze(updater));
+      else updateValue(resultSolver(updater));
     }, []),
   ];
 }
