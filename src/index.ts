@@ -5,10 +5,13 @@ export type DraftFunction<S> = (draft: Draft<S>) => void;
 export type Updater<S> = (arg: S | DraftFunction<S>) => void;
 export type ImmerHook<S> = [S, Updater<S>];
 
-export function useImmer<S = any>(initialValue: S | (() => S), behavior: {
-  freeze?: boolean;
-  deep?: boolean;
-}): ImmerHook<S>;
+export function useImmer<S = any>(
+  initialValue: S | (() => S),
+  behavior: {
+    freeze?: boolean;
+    deep?: boolean;
+  }
+): ImmerHook<S>;
 
 export function useImmer(
   initialValue: any,
@@ -21,7 +24,7 @@ export function useImmer(
   }
 ) {
   const { freeze: behaviorFreeze, deep } = behavior;
-  const doNothing = (...args: any[]) => args;
+  const doNothing = (...args: any[]) => args[0];
   const resultSolver = behaviorFreeze ? freeze : doNothing;
   const [val, updateValue] = useState(() =>
     resultSolver(
